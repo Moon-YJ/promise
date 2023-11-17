@@ -8,6 +8,10 @@
 </head>
 
 <body>
+  <main>
+    <!-- <article><div class="pic"><img src="img/pic1.jpg"/><h2></h2><p></p></div></article> -->
+  </main>
+
   <script>
     // JSON: 데이터 전달을 목적으로 특정 언어에 종속되지 않는 문자열 형태의 자바스크립트 자료 구조
     // JavaScript Object Notation
@@ -20,10 +24,19 @@
         : 외부데이터를 가져와야되기 때문에 시간이 걸리는 메서드라서 promise를 적용할 수 밖에 없으므로 기본적으로 promise기능을 내장하고 있음
     */
 
+    const main = document.querySelector('main');
+    let tags = '';
+
     fetch('member.json')
-      .then(data => data.json()) // 반환된 데이터를 다시 json()으로 parsing해서 다시 동기적으로 반환
-      .catch(err => console.log(err)) // 데이터 반환이 실패하면 해당 구문 호출되고 종료
-      .then(json => console.log(json)); // 첫번째 then구문에서 json parsing이 성공하면 동기적으로 호출
+      .then(data => data.json())
+      .catch(err => console.log(err))
+      .then(json => {
+        console.log(json.members);
+        json.members.forEach((data) => {
+          tags += `<article><div class="pic"><img src="${data.pic}"/><h2>${data.name}</h2><p>${data.position}</p></div></article>`;
+        });
+        main.innerHTML = tags;
+      });
   </script>
 </body>
 
