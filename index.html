@@ -9,101 +9,29 @@
 
 <body>
   <script>
-    function test(delay, callback) {
-      setTimeout(() => callback(), delay);
-    }
-
-    // 결과: start, end, 2초뒤에 test1, test2 순서로 호출됨
-    // 순서1 - start 콘솔 출력 (callstack)
-    console.log('start');
-    // 순서2 - test함수 호출 (callstack)
-    // 순서3 - setTimeout구문 web api에 넘기고 다음코드 바로 실행 (callstack)
-    // (web api가 처리하는 업무: DOM, AJAX, Timeout=setTimeout)
-    // 순서7 - setTimeout 수행하고 그 안쪽의 test1 콘솔문을 callstack에 전달 (web api)
-    // (이때 이미 callstack에서 콘솔 end 업무까지 등록된 상태이기 때문에 그 다음 순서로 호출 대기 -> 단일쓰레드 방식이므로)
-    test(2000, () => console.log('test1'));
-    // 순서4 - 두번째 test함수 호출 (callstack)
-    // 순서5 - setTimeout구문 web api에 넘기고 다음코드 바로 실행 (callstack)
-    // 순서8 - setTimeout 수행하고 그 안쪽의 test2 콘솔문을 callstack에 전달 (web api)
-    // (이때 이미 callstack에서 콘솔 test1 업무까지 등록된 상태이기 때문에 그 다음 순서로 호출 대기)
-    test(2000, () => console.log('test2'));
-    // 순서6 - end 콘솔 출력
-    console.log('end');
-
-
-    // 원하는 결과: start, 2초뒤에 test1, 2초뒤에 test2, end
-    /*
-      ES5에서 callback을 통해 동기화하는 원리
-        : callback을 통한 동기화(callstack으로 하여금 다음에 수행할 업무를 원천적으로 제거)
-        : 동기화시키고 싶은 코드를 모두 callback형태로 묶어 통채로 web api에게 넘김으로써
-        : callstack입장에서 다음에 실행할 코드들을 원천적으로 제거 하는 방법
-    */
-    //순서1 - start출력 (callstack)
-    console.log('start');
-    //순서2 - 첫번째 test함수 호출 (callstack)
-    //순서3 - setTimeout을 web api에게 전달 (callstack)
-    test(2000, () => {
-      //순서4 - setTimeout호출하고 그 안쪽의 구문을 callstack에 전달 (web api)
-      //순서5 - web api로 부터 setTimeout안쪽의 callback함수 전달받고 호출 (callstack)
-      console.log('test1');
-      //순서6 - 다시 두번째 test함수 호출하고 안쪽의 setTimeout을 다시 web api에게 전달 (callstack)      
-      test(2000, () => {
-        //순서7 - setTimeout을 수행하고 아래쪽의 callback으로 전달된 구문을 다시 callstack에 전달 (web api)
-        //순서8 - 아래 구문을 실행하고 종료 (callstack);
-        console.log('test2');
-        console.log('end');
-      });
-    });
-
+    // JSON: 데이터 전달을 목적으로 특정 언어에 종속되지 않는 문자열 형태의 자바스크립트 자료 구조
+    // JavaScript Object Notation
 
     /*
-      ES6 - 동기화처리를 위한 Promise라는 특별한 생성자 함수가 추가
-        : Promise는 일반 인스턴스객체와는 달리 생성시점에 값이 정해지는 것이 아닌 상태값 3가지를 품은 상태에서 반환됨
-        : 추후에 상태값 변환단계에 따라 각각 등록된 메서드가 동기적으로 실행되는 방식
-      
-      Promise의 3가지 상태
-        - [pending]: 특정 요청이 들어간 이후 그 요청이 수행될때까지의 대기상태
-        - [fulfilled]: 요청이 성공적으로 수행완료된 상태
-        - [rejected]: 요청이 실패해서 수행완료된 상태
-
-      Promise 인스턴스를 생성해야되는 대표적인 경우
-        - 외부 데이터를 가지고올때까지 다음 업무를 holding시키면서 동기화처리해야 되는 경우
-        - 코드 내부적으로 setTimeout같은 지연시간이 발생하는 코드인 경우 해당 코드가 끝날때까지 hodling하면서 동기화처리
-
-      핵심요약
-        : Promise란 3가지의 내부 상태값을 가지고 있는 객체, 각 객체의 내부 상태 변화에 따른 특정 메서드의 호출을 약속받은 객체
-      
-      - Promise생성자 함수를 통해서 동기화처리할 코드의 호출 시점을 메서드로 promise객체 인스턴스 형태로 리턴
-      - 이때 Promise생성자 내부에서 자동으로 resolve, reject라는 2개의 인수(함수)가 전달되고
-      - 전달받은 코드가 동기적으로 수행되게하고 싶은 시점에 resolve를 호출 (then호출시점)
-      - 전달받은 코드를 기반으로 동기적으로 에러를 반환하고 싶은 시점에 reject를 호출 (catch호출 시점)
-    */
-    function delay(time, isSuccess) {
-      // delay내부에서 생성되는 promise인스턴스를 다시 delay함수 외부로 리턴
-      // delay함수뒤에 바로 then구문을 호출하기 위함
-      // then을 호출하기 위해서는 이전함수가 promise인스턴스를 반환해야됨
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          console.log('특정 로직이 성공적으로 수행되었을때 실행할 구문');
-          // isSuccess의 상태에 따라 resolve, reject가 분기 호출됨
-          isSuccess ? resolve('success') /*fulfilled 실행시점*/ : reject('fail') /*rejected 실행시점*/;
-          //resolve(); // promise생성자로 생성된 인스턴스 객체에는 .then 메서드를 동기적으로 호출할 시점
-        }, time);
-      });
-    }
-    // promise의 변화되는 상태에 따라 then, catch 동기적으로 호출 가능
-    delay(3000, false)
-      .then((data) => console.log(data))
-      .catch(err => console.error(err));
-
-    /*
-      Promise를 통해 동기화처리하는 방법
-        1. 비동기가 발생하는(setTimeout) 구문을 new Promise의 생성자 함수 콜백으로 전달
-        2. Promise 생성자 콜백 안에서 동기적으로 호출하고 싶은 시점에 첫번째 인수로 전달되는 res() / rej()메서를 호출시킴
-        3. 해당 Promise생성자는 인스턴스 객체를 반환하고
-        4. 해당 인스턴스 객체에 .then메서드나 .catch메서드로 동기화시킬 코드를 호출 가능
+      fetch()
+        : 실시간으로 외부데이터를 가져오는 ES6 내장함수
+        : fetch 자체가 반환된 데이터를 promise로 감싸서 리턴해줌
+        : 결국 사용자가 promise생성을 할 필요가 없음
+        : 외부데이터를 가져와야되기 때문에 시간이 걸리는 메서드라서 promise를 적용할 수 밖에 없으므로 기본적으로 promise기능을 내장하고 있음
     */
 
+    fetch('member.json')
+      .then(data => {
+        // 데이터 성공적으로 반환시 동기적으로 실행되는 구문
+        console.log(data);
+        // 문자열로 변환되어있는 데이터를 읽을 수 있는 객체형태로 parsing처리(promise로 반환됨)
+        return data.json();
+      })
+      .catch(err => {
+        // 데이터 반환에 실패시 동기적으로 실행되는 예외구문
+        console.log(err);
+      })
+      .then(json => console.log(json));
   </script>
 </body>
 
