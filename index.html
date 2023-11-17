@@ -21,16 +21,13 @@
     */
 
     fetch('member.json')
-      .then(data => {
-        // 데이터 성공적으로 반환시 동기적으로 실행되는 구문
-        console.log(data);
-        // 문자열로 변환되어있는 데이터를 읽을 수 있는 객체형태로 parsing처리(promise로 반환됨)
-        return data.json();
-      })
+      // fetch의 promise값에 대한 성공시 호출될 메서드
+      .then(data => data.json())
+      // fetch의 promise값에 대한 실패시 호출될 메서드
       .catch(err => {
-        // 데이터 반환에 실패시 동기적으로 실행되는 예외구문
         console.log(err);
       })
+      // 첫번째 then구문에서 내부 json메서드가 반환한 promise에 대한 성공 호출 메서드
       .then(json => console.log(json));
   </script>
 </body>
