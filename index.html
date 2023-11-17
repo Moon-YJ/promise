@@ -25,18 +25,28 @@
     */
 
     const main = document.querySelector('main');
-    let tags = '';
 
     fetch('member.json')
       .then(data => data.json())
       .catch(err => console.log(err))
-      .then(json => {
-        console.log(json.members);
-        json.members.forEach((data) => {
-          tags += `<article><div class="pic"><img src="${data.pic}"/><h2>${data.name}</h2><p>${data.position}</p></div></article>`;
-        });
-        main.innerHTML = tags;
+      .then(json => createDOM(json.members));
+
+    // 동적으로 DOM 생성하는 함수
+    function createDOM(arr) {
+      let tags = '';
+      arr.forEach((data) => {
+        tags += `
+            <article>
+              <div class="pic">
+                <img src="${data.pic}"/>
+                <h2>${data.name}</h2>
+                <p>${data.position}</p>
+              </div>
+            </article>
+            `;
       });
+      main.innerHTML = tags;
+    }
   </script>
 </body>
 
